@@ -26,12 +26,12 @@ object Application extends Controller {
   )
   
   def index = Action {
-    Ok(views.html.index(generateJS(myForm.mapping), myForm))
+    Ok(views.html.index(generateJS(Messages(_))(myForm.mapping), myForm))
   }
 
   def ok = Action { implicit request =>
     myForm.bindFromRequest.fold(
-      errors => Ok(views.html.index(generateJS(myForm.mapping), errors)),
+      errors => Ok(views.html.index(generateJS(Messages(_))(myForm.mapping), errors)),
       fields => Ok(views.html.ok(fields)))
   }
 }

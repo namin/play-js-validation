@@ -9,8 +9,6 @@ import format.Formats._
 import validation._
 import validation.Constraints._
 
-//import play.api.i18n._
-
 import scala.js._
 
 object PlayLMS {
@@ -20,7 +18,7 @@ object PlayLMS {
 
     def jsName = name.replace(".", "$")
     def validatorRule = jsName + " : true"
-    def validatorCode: String = {
+    def validatorCode(Messages: String => String): String = {
       val writer = new java.io.StringWriter
       jsExp.reset
       val codegen = new JSGen { val IR: jsExp.type = jsExp }
@@ -29,7 +27,7 @@ object PlayLMS {
       val res =
         "jQuery.validator.addMethod(\"" + jsName + "\", function(value, element, params) {\n" +
       "return this.optional(element) || (" + fCode + ")(value);\n" +
-      "}, jQuery.format(\"" + errorName + "\"));\n" // Messages(errorName)
+      "}, jQuery.format(\"" + Messages(errorName) + "\"));\n" 
        res
      }
   }
@@ -47,7 +45,7 @@ object PlayLMS {
     }
   }
 
-    def generateJS[T](top: Mapping[T]) = { id: String =>
+    def generateJS[T](Messages: String => String)(top: Mapping[T]) = { id: String =>
     var validators : Map[String, String] = Map()
     var res = ""
     res += "rules : {\n"
@@ -59,7 +57,7 @@ object PlayLMS {
         c match {
           case jsC : JSConstraint[_] => {
             res += jsC.validatorRule + ",\n"
-            validators += ((jsC.jsName, jsC.validatorCode))
+            validators += ((jsC.jsName, jsC.validatorCode(Messages)))
           }
           case _ => ()
         }
