@@ -69,7 +69,8 @@ object PlayLMS {
         c match {
           case jsC : JSConstraint[_] => {
             res += jsC.validatorRule + ",\n"
-            validators += ((jsC.jsName, jsC.validatorCode(Messages)))
+            if (!validators.contains(jsC.jsName))
+              validators += ((jsC.jsName, jsC.validatorCode(Messages)))
           }
           case _ => ()
         }

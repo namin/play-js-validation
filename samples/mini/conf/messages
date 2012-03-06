@@ -2,3 +2,6 @@
 
 constraint.eq5 = 5
 error.eq5 = Must equal 5
+
+constraint.eq = {0}
+error.eq = Must equal {0}

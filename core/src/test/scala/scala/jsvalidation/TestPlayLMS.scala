@@ -17,6 +17,7 @@ import PlayLMS._
 
 class TestPlayLMS extends Suite {
   case class Fields(a: String, b: Int)
+  case class MoreFields(a: String, b: Int, c: Int, d: Int)
 
   def testSimpleConstraint = {
     val myForm = Form(
@@ -48,6 +49,30 @@ class TestPlayLMS extends Suite {
       )(Fields.apply)(Fields.unapply)
     )
     assertEqualsCheck("param") {
+      generateJS(Messages(_))(myForm.mapping)("#myForm")
+    }
+  }
+
+  def testMultipleConstraint = {
+    def c_eq(v: Int) = jsParametricConstraint("constraint.eq", "error.eq") {
+      new { def eval(c: JS) = {
+        import c._;
+        (params: Rep[Array[Any]]) => fun { (n: Rep[Int]) => n == params(0) }
+      }}
+    }(v)
+
+    val myForm = Form(
+      mapping(
+        "a" -> of[String],
+        "b" -> of[Int].verifying(jsConstraint("constraint.eq5", "error.eq5") { new { def eval(c: JS) = {
+          import c._;
+          (n: Rep[Int]) => n == 5
+        }}}),
+        "c" -> of[Int].verifying(c_eq(6)),
+        "d" -> of[Int].verifying(c_eq(7))
+      )(MoreFields.apply)(MoreFields.unapply)
+    )
+    assertEqualsCheck("multiple") {
       generateJS(Messages(_))(myForm.mapping)("#myForm")
     }
   }
