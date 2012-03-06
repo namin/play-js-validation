@@ -17,12 +17,12 @@ import scala.jsvalidation.PlayLMS._
 case class Fields(a: String, b: Int, c: Int, d: Int)
 
 object Application extends Controller {
-  def c_eq(v: Int) = jsParametricConstraint("constraint.eq", "error.eq") {
+  val c_eq = jsParametricConstraint("constraint.eq", "error.eq") {
     new { def eval(c: JS) = {
       import c._;
       (params: Rep[Array[Any]]) => fun { (n: Rep[Int]) => n == params(0) }
     }}
-  }(v)
+  }
 
   val myForm = Form(
     mapping(

@@ -35,12 +35,12 @@ class TestPlayLMS extends Suite {
   }
 
   def testParamConstraint = {
-    def c_eq(v: Int) = jsParametricConstraint("constraint.eq", "error.eq") {
+    val c_eq = jsParametricConstraint("constraint.eq", "error.eq") {
       new { def eval(c: JS) = {
         import c._;
         (params: Rep[Array[Any]]) => fun { (n: Rep[Int]) => n == params(0) }
       }}
-    }(v)
+    }
 
     val myForm = Form(
       mapping(
@@ -54,12 +54,12 @@ class TestPlayLMS extends Suite {
   }
 
   def testMultipleConstraint = {
-    def c_eq(v: Int) = jsParametricConstraint("constraint.eq", "error.eq") {
+    val c_eq = jsParametricConstraint("constraint.eq", "error.eq") {
       new { def eval(c: JS) = {
         import c._;
         (params: Rep[Array[Any]]) => fun { (n: Rep[Int]) => n == params(0) }
       }}
-    }(v)
+    }
 
     val myForm = Form(
       mapping(

@@ -51,7 +51,7 @@ object PlayLMS {
     }
   }
 
-  def jsParametricConstraint[T:Manifest](name: String, errorName: String)(prog: { def eval(c: JS): c.Rep[Array[Any]] => c.Rep[T => Boolean] })(args: Any*) = {
+  def jsParametricConstraint[T:Manifest](name: String, errorName: String)(prog: { def eval(c: JS): c.Rep[Array[Any]] => c.Rep[T => Boolean] }) = new { def apply(args: Any*) = {
     val inScala = newInScala
     val inJS = newInJS
 
@@ -61,7 +61,7 @@ object PlayLMS {
       override val jsExp: inJS.type = inJS
       override val fExp = fExpArg
     }
-  }
+  }}
 
   def generateJS[T](Messages: String => String)(top: Mapping[T]) = { id: String =>
     var validators : Map[String, String] = Map()
