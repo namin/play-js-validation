@@ -1,0 +1,4 @@
+# Messages
+
+constraint.eq5 = 5
+error.eq5 = Must equal 5

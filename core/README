@@ -1,0 +1,4 @@
+Installation Notes
+
+mkdir lib
+cp $PLAY_20/framework/src/play/target/scala-2.10.0-virtualized-SNAPSHOT/play_2.10.0-virtualized-SNAPSHOT-2.0-SNAPSHOT.jar lib/
