@@ -32,14 +32,17 @@ object PlayLMS {
      }
   }
 
-  object inScala extends JSInScala
-  object inJS extends JSExp {
+  def newInScala = new JSInScala {}
+  def newInJS = new JSExp {
     def wrap[T:Manifest](f: Rep[T] => Rep[Boolean]): Rep[Array[Any]] => Rep[T => Boolean] =
       (_ : Rep[Array[Any]]) => f
   }
 
 
   def jsConstraint[T:Manifest](name: String, errorName: String)(prog: { def eval(c: JS): c.Rep[T] => c.Rep[Boolean] }) = {
+    val inScala = newInScala
+    val inJS = newInJS
+
     val f = prog.eval(inScala)
     val fExpArg = inJS.wrap(prog.eval(inJS))
     new JSConstraint[T](name, errorName, Seq[Any](), f) {
@@ -49,6 +52,9 @@ object PlayLMS {
   }
 
   def jsParametricConstraint[T:Manifest](name: String, errorName: String)(prog: { def eval(c: JS): c.Rep[Array[Any]] => c.Rep[T => Boolean] })(args: Any*) = {
+    val inScala = newInScala
+    val inJS = newInJS
+
     val f = prog.eval(inScala)
     val fExpArg = prog.eval(inJS)
     new JSConstraint[T](name, errorName, args, f(args.toArray)) {
