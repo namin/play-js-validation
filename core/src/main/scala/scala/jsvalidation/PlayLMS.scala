@@ -12,12 +12,12 @@ import validation.Constraints._
 import scala.js._
 
 object PlayLMS {
-  abstract class JSConstraint[-T:Manifest](name: String, errorName: String, f: T => Boolean) extends Constraint[T](Some(name), Seq[Any]())(o => if (f(o)) Valid else Invalid(ValidationError(errorName))) {
+  abstract class JSConstraint[-T:Manifest](name: String, errorName: String, args: Seq[Any], f: T => Boolean) extends Constraint[T](Some(name), args)(o => if (f(o)) Valid else Invalid(ValidationError(errorName))) {
     val jsExp: JSExp
-    val fExp: jsExp.Rep[T] => jsExp.Rep[Boolean]
+    val fExp: jsExp.Rep[Array[Any]] => jsExp.Rep[T => Boolean]
 
     def jsName = name.replace(".", "$")
-    def validatorRule = jsName + " : true"
+    def validatorRule = jsName + " : " + (if (args.isEmpty) "true" else args.mkString("[", ",", "]"))
     def validatorCode(Messages: String => String): String = {
       val writer = new java.io.StringWriter
       jsExp.reset
@@ -26,26 +26,38 @@ object PlayLMS {
       val fCode = writer.toString
       val res =
         "jQuery.validator.addMethod(\"" + jsName + "\", function(value, element, params) {\n" +
-      "return this.optional(element) || (" + fCode + ")(value);\n" +
+      "return this.optional(element) || ((" + fCode + ")(params))(value);\n" +
       "}, jQuery.format(\"" + Messages(errorName) + "\"));\n" 
        res
      }
   }
 
   object inScala extends JSInScala
-  object inJS extends JSExp
+  object inJS extends JSExp {
+    def wrap[T:Manifest](f: Rep[T] => Rep[Boolean]): Rep[Array[Any]] => Rep[T => Boolean] =
+      (_ : Rep[Array[Any]]) => f
+  }
 
 
   def jsConstraint[T:Manifest](name: String, errorName: String)(prog: { def eval(c: JS): c.Rep[T] => c.Rep[Boolean] }) = {
     val f = prog.eval(inScala)
-    val fExpArg = prog.eval(inJS)
-    new JSConstraint[T](name, errorName, f) {
+    val fExpArg = inJS.wrap(prog.eval(inJS))
+    new JSConstraint[T](name, errorName, Seq[Any](), f) {
       override val jsExp: inJS.type = inJS
       override val fExp = fExpArg
     }
   }
 
-    def generateJS[T](Messages: String => String)(top: Mapping[T]) = { id: String =>
+  def jsParametricConstraint[T:Manifest](name: String, errorName: String)(prog: { def eval(c: JS): c.Rep[Array[Any]] => c.Rep[T => Boolean] })(args: Any*) = {
+    val f = prog.eval(inScala)
+    val fExpArg = prog.eval(inJS)
+    new JSConstraint[T](name, errorName, args, f(args.toArray)) {
+      override val jsExp: inJS.type = inJS
+      override val fExp = fExpArg
+    }
+  }
+
+  def generateJS[T](Messages: String => String)(top: Mapping[T]) = { id: String =>
     var validators : Map[String, String] = Map()
     var res = ""
     res += "rules : {\n"

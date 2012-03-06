@@ -32,11 +32,30 @@ class TestPlayLMS extends Suite {
       generateJS(Messages(_))(myForm.mapping)("#myForm")
     }
   }
-  
+
+  def testParamConstraint = {
+    def c_eq(v: Int) = jsParametricConstraint("constraint.eq", "error.eq") {
+      new { def eval(c: JS) = {
+        import c._;
+        (params: Rep[Array[Any]]) => fun { (n: Rep[Int]) => n == params(0) }
+      }}
+    }(v)
+
+    val myForm = Form(
+      mapping(
+        "a" -> of[String],
+        "b" -> of[Int].verifying(c_eq(5))
+      )(Fields.apply)(Fields.unapply)
+    )
+    assertEqualsCheck("param") {
+      generateJS(Messages(_))(myForm.mapping)("#myForm")
+    }
+  }
+
   val prefix = "test-out/"
   def Messages(msg: String) = msg match {
-    case "constraint.eq5" => "5"
     case "error.eq5" => "Must equal 5"
+    case "error.eq" => "Must equal {0}"
     case _ => msg
   }
   def writeFile(name: String, content: String) {
