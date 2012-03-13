@@ -81,25 +81,41 @@ object PlayLMS {
     pc(whole_regex)
   }
 
+  // Hack: top.mappings doesn't return what we want, because
+  //   it goes too deep into field mappings,
+  //   leaving us without knowledge of whether a mapping is optional.
+  def directMappings(top: Mapping[_]): Seq[(String, Mapping[_])] = {
+    top match {
+      case prod : Product =>
+        prod.productIterator.toSeq.collect{ case t : (String, Mapping[_]) => t }
+    }
+  }
+
   def generateJS[T](Messages: String => String)(top: Mapping[T]) = { id: String =>
     var validators : Map[String, String] = Map()
     var res = ""
     res += "rules : {\n"
-    
-    for (m <- top.mappings; if !m.key.isEmpty() && !m.constraints.isEmpty) {
-      res += m.key + ": {\n"
-      res += "required : true,\n"
-      for (c <- m.constraints) {
-        c match {
-          case jsC : JSConstraint[_] => {
-            res += jsC.validatorRule + ",\n"
-            if (!validators.contains(jsC.jsName))
-              validators += ((jsC.jsName, jsC.validatorCode(Messages)))
-          }
-          case _ => ()
-        }
+
+    for ((key, dm) <- directMappings(top)) {
+      val (isRequired, m) = dm match {
+        case om : OptionalMapping[_] => (false, om.wrapped)
+        case _ => (true, dm)
       }
-      res += "},\n"
+      if (!m.constraints.isEmpty) {
+        res += key + ": {\n"
+        if (isRequired) res += "required : true,\n"
+        for (c <- m.constraints) {
+          c match {
+            case jsC : JSConstraint[_] => {
+              res += jsC.validatorRule + ",\n"
+              if (!validators.contains(jsC.jsName))
+                validators += ((jsC.jsName, jsC.validatorCode(Messages)))
+            }
+            case _ => ()
+          }
+        }
+        res += "},\n"
+      }
     }
 
     res += "}\n"

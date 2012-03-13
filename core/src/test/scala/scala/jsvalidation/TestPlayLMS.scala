@@ -17,6 +17,7 @@ import PlayLMS._
 
 class TestPlayLMS extends Suite {
   case class Fields(a: String, b: Int)
+  case class OptFields(a: String, b: Option[Int])
   case class MoreFields(a: String, b: Int, c: Int, d: Int)
 
   def testSimpleConstraint = {
@@ -61,6 +62,21 @@ class TestPlayLMS extends Suite {
       )(Fields.apply)(Fields.unapply)
     )
     assertEqualsCheck("pattern") {
+      generateJS(Messages(_))(myForm.mapping)("#myForm")
+    }
+  }
+
+  def testOptionalConstraint = {
+    val myForm = Form(
+      mapping(
+        "a" -> of[String],
+        "b" -> optional(of[Int].verifying(jsConstraint("constraint.eq5", "error.eq5") { new { def eval(c: JS) = {
+          import c._;
+          (n: Rep[Int]) => n == 5
+        }}}))
+      )(OptFields.apply)(OptFields.unapply)
+    )
+    assertEqualsCheck("optional") {
       generateJS(Messages(_))(myForm.mapping)("#myForm")
     }
   }

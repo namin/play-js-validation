@@ -1,0 +1,18 @@
+jQuery.validator.addMethod("constraint$eq5", function(value, element, params) {
+return this.optional(element) || ((function(x0) {
+var x1 = function(x2) {
+var x3 = x2==5
+return x3
+}
+return x1
+}
+)(params))(value);
+}, jQuery.format("Must equal 5"));
+$(document).ready(function(){
+$("#myForm").validate({rules : {
+b: {
+constraint$eq5 : true,
+},
+}
+})
+})

@@ -14,7 +14,7 @@ import play.api.i18n._
 import scala.js._
 import scala.jsvalidation.PlayLMS._
 
-case class Fields(a: String, b: Int, c: Int, d: Int)
+case class Fields(a: String, b: Int, c: Int, d: Option[Int])
 
 object Application extends Controller {
   val c_eq = jsParametricConstraint("constraint.eq", "error.eq") {
@@ -29,7 +29,7 @@ object Application extends Controller {
       "a" -> of[String].verifying(jsPattern("""[0-9.+]+""")),
       "b" -> of[Int].verifying(jsConstraint("constraint.eq5", "error.eq5") { new { def eval(c: JS) = { import c._; (n: Rep[Int]) => n == 5 } } }),
       "c" -> of[Int].verifying(c_eq(6)),
-      "d" -> of[Int].verifying(c_eq(7))
+      "d" -> optional(of[Int].verifying(c_eq(7)))
     )(Fields.apply)(Fields.unapply)
   )
   
