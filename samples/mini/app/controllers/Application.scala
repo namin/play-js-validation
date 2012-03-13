@@ -26,7 +26,7 @@ object Application extends Controller {
 
   val myForm = Form(
     mapping(
-      "a" -> of[String],
+      "a" -> of[String].verifying(jsPattern("""[0-9.+]+""")),
       "b" -> of[Int].verifying(jsConstraint("constraint.eq5", "error.eq5") { new { def eval(c: JS) = { import c._; (n: Rep[Int]) => n == 5 } } }),
       "c" -> of[Int].verifying(c_eq(6)),
       "d" -> of[Int].verifying(c_eq(7))

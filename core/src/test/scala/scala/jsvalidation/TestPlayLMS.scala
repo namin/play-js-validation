@@ -53,6 +53,18 @@ class TestPlayLMS extends Suite {
     }
   }
 
+  def testPatternConstraint = {
+    val myForm = Form(
+      mapping(
+        "a" -> of[String].verifying(jsPattern("""[0-9.+]+""")),
+        "b" -> of[Int]
+      )(Fields.apply)(Fields.unapply)
+    )
+    assertEqualsCheck("pattern") {
+      generateJS(Messages(_))(myForm.mapping)("#myForm")
+    }
+  }
+
   def testMultipleConstraint = {
     val c_eq = jsParametricConstraint("constraint.eq", "error.eq") {
       new { def eval(c: JS) = {
@@ -81,6 +93,7 @@ class TestPlayLMS extends Suite {
   def Messages(msg: String) = msg match {
     case "error.eq5" => "Must equal 5"
     case "error.eq" => "Must equal {0}"
+    case "error.pattern" => "Must satisfy {0}"
     case _ => msg
   }
   def writeFile(name: String, content: String) {

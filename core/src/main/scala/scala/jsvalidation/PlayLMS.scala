@@ -16,12 +16,13 @@ object PlayLMS {
     val jsExp: JSExp
     val fExp: jsExp.Rep[Array[Any]] => jsExp.Rep[T => Boolean]
 
+    private def codegen = new JSGen { val IR: jsExp.type = jsExp }
+
     def jsName = name.replace(".", "$")
-    def validatorRule = jsName + " : " + (if (args.isEmpty) "true" else args.mkString("[", ",", "]"))
+    def validatorRule = jsName + " : " + (if (args.isEmpty) "true" else args.map(x => codegen.quote(jsExp.Const(x))).mkString("[", ",", "]"))
     def validatorCode(Messages: String => String): String = {
       val writer = new java.io.StringWriter
       jsExp.reset
-      val codegen = new JSGen { val IR: jsExp.type = jsExp }
       codegen.emitSource(fExp, "", new java.io.PrintWriter(writer))
       val fCode = writer.toString
       val res =
@@ -32,8 +33,8 @@ object PlayLMS {
      }
   }
 
-  def newInScala = new JSInScala {}
-  def newInJS = new JSExp {
+  private def newInScala = new JSInScala {}
+  private def newInJS = new JSExp {
     def wrap[T:Manifest](f: Rep[T] => Rep[Boolean]): Rep[Array[Any]] => Rep[T => Boolean] =
       (_ : Rep[Array[Any]]) => f
   }
@@ -62,6 +63,23 @@ object PlayLMS {
       override val fExp = fExpArg
     }
   }}
+
+  def jsPattern(regex: String, name: String = "constraint.pattern", error: String = "error.pattern") = {
+    if (error != "error.pattern") {
+      assert(name != "constraint.pattern", "You need to change the name if you change the error.")
+    }
+
+    val whole_regex =
+      (if (regex.startsWith("^")) "" else "^") +
+      regex +
+      (if (regex.endsWith("$")) "" else "$")
+    val pc = jsParametricConstraint(name, error) { new Serializable { def eval(c: JS) = {
+      import c._;
+      (params: Rep[Array[Any]]) => fun { (str: Rep[String]) =>
+        params(0).asInstanceOf[Rep[String]].r.test(str) }
+    }}}
+    pc(whole_regex)
+  }
 
   def generateJS[T](Messages: String => String)(top: Mapping[T]) = { id: String =>
     var validators : Map[String, String] = Map()

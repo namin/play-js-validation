@@ -1,0 +1,21 @@
+jQuery.validator.addMethod("constraint$pattern", function(value, element, params) {
+return this.optional(element) || ((function(x0) {
+var x3 = x0[0]
+var x4 = new RegExp(x3)
+var x1 = function(x2) {
+var x5 = x4.test(x2)
+return x5
+}
+return x1
+}
+)(params))(value);
+}, jQuery.format("Must satisfy {0}"));
+$(document).ready(function(){
+$("#myForm").validate({rules : {
+a: {
+required : true,
+constraint$pattern : ["^[0-9.+]+$"],
+},
+}
+})
+})
