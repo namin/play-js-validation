@@ -91,7 +91,7 @@ object PlayLMS {
     }
   }
 
-  def generateJS[T](Messages: String => String)(top: Mapping[T]) = { id: String =>
+  def generateJS[T](Messages: String => String, twitterBootstrap: Boolean = false)(top: Mapping[T]) = { id: String =>
     var validators : Map[String, String] = Map()
     var res = ""
     res += "rules : {\n"
@@ -119,6 +119,18 @@ object PlayLMS {
     }
 
     res += "}\n"
+
+    if (twitterBootstrap)
+      res = """
+    errorClass:'help-inline',
+    errorElement:'span',
+    highlight: function (element, errorClass, validClass) {
+        $(element).parents("div.clearfix").addClass('error').removeClass('success');
+    },
+    unhighlight: function (element, errorClass, validClass) {
+        $(element).parents(".error").removeClass('error').addClass('success');
+    },
+""" + res
 
     res = "$(document).ready(function(){\n$(\"" + id + "\").validate({" + res + "})\n})"
 

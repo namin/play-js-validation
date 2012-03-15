@@ -34,7 +34,7 @@ object Application extends Controller {
   )
   
   def index = Action {
-    Ok(views.html.index(generateJS(Messages(_))(myForm.mapping), myForm))
+    Ok(views.html.index(generateJS(Messages(_), twitterBootstrap = true)(myForm.mapping), myForm))
   }
 
   def ok = Action { implicit request =>

@@ -105,6 +105,21 @@ class TestPlayLMS extends Suite {
     }
   }
 
+  def testTwitterBootstrap = {
+    val myForm = Form(
+      mapping(
+        "a" -> of[String],
+        "b" -> of[Int].verifying(jsConstraint("constraint.eq5", "error.eq5") { new { def eval(c: JS) = {
+          import c._;
+          (n: Rep[Int]) => n == 5
+        }}})
+      )(Fields.apply)(Fields.unapply)
+    )
+    assertEqualsCheck("bootstrap") {
+      generateJS(Messages(_), twitterBootstrap = true)(myForm.mapping)("#myForm")
+    }
+  }
+
   val prefix = "test-out/"
   def Messages(msg: String) = msg match {
     case "error.eq5" => "Must equal 5"
