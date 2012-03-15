@@ -12,7 +12,6 @@ object ApplicationBuild extends Build {
     )
 
     val main = PlayProject(appName, appVersion, appDependencies, mainLang = SCALA).settings(
-      // Add your own project settings here      
       resolvers += Resolver.url("ivy-local", url("file:///home/namin/.ivy2/local"))(Resolver.ivyStylePatterns),
       scalacOptions ++= Seq("-deprecation", "-unchecked", "-Xexperimental", "-Yvirtualize")
     )
