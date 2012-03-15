@@ -1,0 +1,14 @@
+$(document).ready(function(){
+$("#myForm").validate({rules : {
+a: {
+required : true,
+minlength : 3,
+maxlength : 5,
+},
+b: {
+required : true,
+min : 2,
+},
+}
+})
+})

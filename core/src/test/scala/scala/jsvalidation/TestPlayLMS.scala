@@ -20,6 +20,18 @@ class TestPlayLMS extends Suite {
   case class OptFields(a: String, b: Option[Int])
   case class MoreFields(a: String, b: Int, c: Int, d: Int)
 
+  def testBuiltInConstraint = {
+    val myForm = Form(
+      mapping(
+        "a" -> text(minLength = 3, maxLength = 5),
+        "b" -> number(min = 2)
+      )(Fields.apply)(Fields.unapply)
+    )
+    assertEqualsCheck("builtin") {
+      generateJS(Messages(_))(myForm.mapping)("#myForm")
+    }
+  }
+
   def testSimpleConstraint = {
     val myForm = Form(
       mapping(

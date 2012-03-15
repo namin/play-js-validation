@@ -28,13 +28,13 @@ object Application extends Controller {
     mapping(
       "a" -> of[String].verifying(jsPattern("""[0-9.+]+""")),
       "b" -> of[Int].verifying(jsConstraint("constraint.eq5", "error.eq5") { new { def eval(c: JS) = { import c._; (n: Rep[Int]) => n == 5 } } }),
-      "c" -> of[Int].verifying(c_eq(6)),
+      "c" -> number(min = 18),
       "d" -> optional(of[Int].verifying(c_eq(7)))
     )(Fields.apply)(Fields.unapply)
   )
   
   def index = Action {
-    Ok(views.html.index(generateJS(Messages(_), twitterBootstrap = true)(myForm.mapping), myForm))
+    Ok(views.html.index(generateJS(Messages(_), twitterBootstrap = true, playDefaults = true)(myForm.mapping), myForm))
   }
 
   def ok = Action { implicit request =>

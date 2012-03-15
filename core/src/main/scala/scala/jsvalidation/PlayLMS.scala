@@ -20,7 +20,6 @@ object PlayLMS {
     def validatorRule = jsName + " : " + (if (args.isEmpty) "true" else args.map(jsquote).mkString("[", ",", "]"))
     def validatorCode(Messages: String => String): String = {
       val writer = new java.io.StringWriter
-      jsExp.reset
       codegen(jsExp).emitSource(fExp, "", new java.io.PrintWriter(writer))
       val fCode = writer.toString
       val res =
@@ -32,9 +31,13 @@ object PlayLMS {
   }
 
   private def newInScala = new JSInScala {}
-  private def newInJS = new JSExp {
-    def wrap[T:Manifest](f: Rep[T] => Rep[Boolean]): Rep[Array[Any]] => Rep[T => Boolean] =
-      (_ : Rep[Array[Any]]) => f
+  private def newInJS = {
+    val ret = new JSExp {
+      def wrap[T:Manifest](f: Rep[T] => Rep[Boolean]): Rep[Array[Any]] => Rep[T => Boolean] =
+        (_ : Rep[Array[Any]]) => f
+    }
+    ret.reset
+    ret
   }
   private def jsquote(x: Any) = {
     val jsExp = newInJS
@@ -94,10 +97,24 @@ object PlayLMS {
   }
 
   val builtins = Map(
-    "constraint.min" -> {args: Seq[Any] => ("min", jsquote(args(0)))}
+    "constraint.min" -> ("error.min", "min", {args: Seq[Any] => jsquote(args(0))}),
+    "constraint.max" -> ("error.max", "max", {args: Seq[Any] => jsquote(args(0))}),
+
+    "constraint.minLength" -> ("error.minLength", "minlength", {args: Seq[Any] => jsquote(args(0))}),
+    "constraint.maxLength" -> ("error.maxLength", "maxlength", {args: Seq[Any] => jsquote(args(0))}),
+
+    "constraint.email" -> ("error.email", "email", {args: Seq[Any] => "true"})
   )
 
-  def generateJS[T](Messages: String => String, twitterBootstrap: Boolean = false)(top: Mapping[T]) = { id: String =>
+  object BuiltInConstraint {
+    def unapply(c: Constraint[_]) = {
+      c.name.flatMap{name => builtins.get(name).map{ case (_, id, f) =>
+        (id, f(c.args))
+      }}
+    }
+  }
+
+  def generateJS[T](Messages: String => String, twitterBootstrap: Boolean = false, playDefaults: Boolean = false)(top: Mapping[T]) = { id: String =>
     var validators : Map[String, String] = Map()
     var res = ""
     res += "rules : {\n"
@@ -117,6 +134,9 @@ object PlayLMS {
               if (!validators.contains(jsC.jsName))
                 validators += ((jsC.jsName, jsC.validatorCode(Messages)))
             }
+            case BuiltInConstraint(lhs, rhs) =>
+              res += lhs + " : " + rhs + ",\n"
+
             case _ => ()
           }
         }
@@ -142,6 +162,17 @@ object PlayLMS {
 
     res = validators.values.mkString("\n") + res
 
+    if (playDefaults) {
+      var defs = "jQuery.extend(jQuery.validator.messages, {\n"
+      
+      defs += "required : " + jsquote(Messages("error.required")) + ",\n"
+      for ((errorName, cName, _) <- builtins.values) {
+        defs += cName + " : " + jsquote(Messages(errorName)) + ",\n"
+      }
+
+      defs += "})\n"
+      res = defs + res
+    }
     res
   }
 }
