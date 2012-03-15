@@ -16,14 +16,12 @@ object PlayLMS {
     val jsExp: JSExp
     val fExp: jsExp.Rep[Array[Any]] => jsExp.Rep[T => Boolean]
 
-    private def codegen = new JSGen { val IR: jsExp.type = jsExp }
-
     def jsName = name.replace(".", "$")
-    def validatorRule = jsName + " : " + (if (args.isEmpty) "true" else args.map(x => codegen.quote(jsExp.Const(x))).mkString("[", ",", "]"))
+    def validatorRule = jsName + " : " + (if (args.isEmpty) "true" else args.map(jsquote).mkString("[", ",", "]"))
     def validatorCode(Messages: String => String): String = {
       val writer = new java.io.StringWriter
       jsExp.reset
-      codegen.emitSource(fExp, "", new java.io.PrintWriter(writer))
+      codegen(jsExp).emitSource(fExp, "", new java.io.PrintWriter(writer))
       val fCode = writer.toString
       val res =
         "jQuery.validator.addMethod(\"" + jsName + "\", function(value, element, params) {\n" +
@@ -38,7 +36,11 @@ object PlayLMS {
     def wrap[T:Manifest](f: Rep[T] => Rep[Boolean]): Rep[Array[Any]] => Rep[T => Boolean] =
       (_ : Rep[Array[Any]]) => f
   }
-
+  private def jsquote(x: Any) = {
+    val jsExp = newInJS
+    codegen(jsExp).quote(jsExp.Const(x))
+  }
+  private def codegen(jsExp: JSExp) = new JSGen { val IR: jsExp.type = jsExp }
 
   def jsConstraint[T:Manifest](name: String, errorName: String)(prog: { def eval(c: JS): c.Rep[T] => c.Rep[Boolean] }) = {
     val inScala = newInScala
@@ -90,6 +92,10 @@ object PlayLMS {
         prod.productIterator.toSeq.collect{ case t : (String, Mapping[_]) => t }
     }
   }
+
+  val builtins = Map(
+    "constraint.min" -> {args: Seq[Any] => ("min", jsquote(args(0)))}
+  )
 
   def generateJS[T](Messages: String => String, twitterBootstrap: Boolean = false)(top: Mapping[T]) = { id: String =>
     var validators : Map[String, String] = Map()
