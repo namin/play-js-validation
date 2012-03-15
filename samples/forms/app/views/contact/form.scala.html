@@ -1,4 +1,4 @@
-@(contactForm: Form[Contact])
+@(js: String => String, contactForm: Form[Contact])
 
 @import helper._
 @import helper.twitterBootstrap._
@@ -57,6 +57,7 @@
 }
 
 @main(title, nav = "contact") {
+    <script>@Html(js("#contactForm"))</script>
     
     @if(contactForm.hasErrors) {
         <div class="alert-message error">
@@ -64,7 +65,7 @@
         </div>
     }
     
-    @helper.form(action = routes.Contacts.submit) {
+    @helper.form(action = routes.Contacts.submit, args = 'id -> "contactForm") {
         
         <fieldset>
             <legend>General informations</legend>

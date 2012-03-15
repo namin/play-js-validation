@@ -1,4 +1,4 @@
-@(signupForm: Form[User])
+@(js: String => String, signupForm: Form[User])
 
 @import helper._
 @import helper.twitterBootstrap._
@@ -8,8 +8,9 @@
 }
 
 @main(title, nav = "signup") {
+    <script>@Html(js("#signupForm"))</script>
     
-    @helper.form(action = routes.SignUp.submit) {
+    @helper.form(action = routes.SignUp.submit, args = 'id -> "signupForm") {
         
         <fieldset>
             <legend>Account informations</legend>
@@ -70,7 +71,7 @@
             
             @checkbox(
                 signupForm("accept"), 
-                '_label -> None, '_text -> "You aggree the Terms and conditions",
+                '_label -> None, '_text -> "You agree to the Terms and Conditions",
                 '_showConstraints -> false
             )
             

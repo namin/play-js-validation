@@ -10,6 +10,9 @@ import views._
 
 import models._
 
+import play.api.i18n._
+import scala.jsvalidation.PlayLMS._
+
 object Contacts extends Controller {
   
   /**
@@ -29,7 +32,7 @@ object Contacts extends Controller {
           "label" -> nonEmptyText,
           "email" -> optional(email),
           "phones" -> list(
-            text verifying pattern("""[0-9.+]+""".r, error="A valid phone number is required")
+            text verifying jsPattern("""[0-9.+]+""", "constraint.phone", "A valid phone number is required")
           ) 
         )(ContactInformation.apply)(ContactInformation.unapply)
       )
@@ -37,11 +40,13 @@ object Contacts extends Controller {
     )(Contact.apply)(Contact.unapply)
   )
   
+  lazy val js = generateJS(Messages(_), twitterBootstrap = true, playDefaults = true)(contactForm.mapping)
+
   /**
    * Display an empty form.
    */
   def form = Action {
-    Ok(html.contact.form(contactForm));
+    Ok(html.contact.form(js, contactForm));
   }
   
   /**
@@ -61,7 +66,7 @@ object Contacts extends Controller {
         )
       )
     )
-    Ok(html.contact.form(contactForm.fill(existingContact)))
+    Ok(html.contact.form(js, contactForm.fill(existingContact)))
   }
   
   /**
@@ -69,7 +74,7 @@ object Contacts extends Controller {
    */
   def submit = Action { implicit request =>
     contactForm.bindFromRequest.fold(
-      errors => BadRequest(html.contact.form(errors)),
+      errors => BadRequest(html.contact.form(js, errors)),
       contact => Ok(html.contact.summary(contact))
     )
   }

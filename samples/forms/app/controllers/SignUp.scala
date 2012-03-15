@@ -9,6 +9,9 @@ import views._
 
 import models._
 
+import play.api.i18n._
+import scala.jsvalidation.PlayLMS._
+
 object SignUp extends Controller {
   
   /**
@@ -62,11 +65,13 @@ object SignUp extends Controller {
     )
   )
   
+  lazy val js = generateJS(Messages(_), twitterBootstrap = true, playDefaults = true)(signupForm.mapping)
+
   /**
    * Display an empty form.
    */
   def form = Action {
-    Ok(html.signup.form(signupForm));
+    Ok(html.signup.form(js, signupForm));
   }
   
   /**
@@ -77,7 +82,7 @@ object SignUp extends Controller {
       "fakeuser", "secret", "fake@gmail.com", 
       UserProfile("France", None, Some(30))
     )
-    Ok(html.signup.form(signupForm.fill(existingUser)))
+    Ok(html.signup.form(js, signupForm.fill(existingUser)))
   }
   
   /**
@@ -86,7 +91,7 @@ object SignUp extends Controller {
   def submit = Action { implicit request =>
     signupForm.bindFromRequest.fold(
       // Form has errors, redisplay it
-      errors => BadRequest(html.signup.form(errors)),
+      errors => BadRequest(html.signup.form(js, errors)),
       
       // We got a valid User value, display the summary
       user => Ok(html.signup.summary(user))
