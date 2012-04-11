@@ -1,0 +1,30 @@
+@(comment: Comment)
+
+@main(Html("Comment sent!"), nav = "comment") {
+    
+    <h2>@comment.firstname @comment.lastname</h2>
+    
+    <h6>Company</h6>
+    
+    <p>
+       @comment.company.getOrElse { <em>Not specified</em> } 
+    </p>
+    
+    <h6>Email</h6>
+
+    <p>
+      @comment.email
+    </p>
+
+    <h6>Phone</h6>
+
+    <p>
+       @comment.phone.getOrElse { <em>Not specified</em> } 
+    </p>
+
+    <h6>Message</h6>
+
+    <p>
+      @comment.message
+    </p>
+}

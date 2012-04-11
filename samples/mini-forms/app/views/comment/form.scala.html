@@ -1,0 +1,61 @@
+@(js: String => String, commentForm: Form[Comment])
+
+@import helper._
+@import helper.twitterBootstrap._
+
+@title = {
+    Add a new comment <small><a href="@routes.Comments.editForm">Or edit an existing comment</a></small>
+}
+
+@main(title, nav = "comment") {
+    <script>@Html(js("#commentForm"))</script>
+    
+    @if(commentForm.hasErrors) {
+        <div class="alert-message error">
+            <p><strong>Oops</strong> Please fix all errors</p>
+        </div>
+    }
+    
+    @helper.form(action = routes.Comments.submit, args = 'id -> "commentForm") {
+        
+        <fieldset>
+            <legend>Send us a <em>nice</em> comment!</legend>
+            
+            @inputText(
+                commentForm("firstname"), 
+                '_label -> "First name"
+            )
+            
+            @inputText(
+                commentForm("lastname"), 
+                '_label -> "Last name"
+            )
+            
+            @inputText(
+                commentForm("company"), 
+                '_label -> "Company"
+            )
+            
+            @inputText(
+                commentForm("email"),
+                '_label -> "Email"
+            )
+
+            @inputText(
+                commentForm("phone"),
+                '_label -> "Phone"
+            )
+
+            @inputText(
+                commentForm("message"),
+                '_label -> "Message"
+            )
+        </fieldset>
+        
+        <div class="actions">
+            <input type="submit" class="btn primary" value="Send">
+            <a href="@routes.Application.index" class="btn">Cancel</a>
+        </div>
+        
+    }
+}
