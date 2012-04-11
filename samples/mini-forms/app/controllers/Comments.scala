@@ -11,10 +11,10 @@ import views._
 import models._
 
 import play.api.i18n._
+import scala.js._
 import scala.jsvalidation.PlayLMS._
 
 object Comments extends Controller {
-  
   val commentForm: Form[Comment] = Form(
     mapping(
       "firstname" -> nonEmptyText,
@@ -22,7 +22,13 @@ object Comments extends Controller {
       "company" -> optional(text),
       "email" -> email,
       "phone" -> optional(text verifying jsPattern("""[0-9.+]+""", "constraint.phone", "A valid phone number is required")),
-      "message" -> nonEmptyText
+      "message" -> nonEmptyText.verifying(jsConstraint("constraint.nice_message", "error.nice_message") { new { def eval(c: JS) = { import c._; (msg: Rep[String]) => {
+        val words = msg.split(" ")
+        def countWords(regex: String) = words.filter(regex.r.test(_)).length
+        val hateCount = countWords("[Hh]ate|[Ss]uck")
+        val loveCount = countWords("[Ll]ove|[Rr]ock")
+        hateCount < loveCount
+     }}}})
     )(Comment.apply)(Comment.unapply)
   )
   

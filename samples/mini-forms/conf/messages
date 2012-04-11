@@ -1,3 +1,6 @@
 # Messages
 
 constraint.phone = e.g. 01.617.253.1000
+
+constraint.nice_message = Nice message
+error.nice_message = There must be more 'love' than 'hate'.
