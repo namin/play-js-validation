@@ -8,7 +8,7 @@ object ApplicationBuild extends Build {
     val appVersion      = "1.0-SNAPSHOT"
 
     val appDependencies = Seq(
-      "EPFL" % "play-js-validation_2.10.0-virtualized-SNAPSHOT" % "0.1"
+      "EPFL" %% "play-js-validation" % "0.2-SNAPSHOT"
     )
 
     val main = PlayProject(appName, appVersion, appDependencies, mainLang = SCALA).settings(
